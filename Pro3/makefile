@@ -7,6 +7,11 @@ CFLAGS=-I.
 
 
 
+all:pro3_a pro3_c2 pro3_d
 
-pro3_a: pro3_a.cpp
-	${CC} -o pro3_a.exe pro3_a.cpp
+pro3_d: pro3_d.cpp
+	${CC} -o pro3_d.exe pro3_d.cpp
+pro3_d: pro3_d.cpp
+	${CC} -o pro3_d.exe pro3_d.cpp
+pro3_d: pro3_d.cpp
+	${CC} -o pro3_d.exe pro3_d.cpp
