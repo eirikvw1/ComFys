@@ -1,3 +1,4 @@
+#include <omp.h>
 #include <armadillo>
 #include <iostream>
 #include <fstream>
@@ -11,7 +12,7 @@
 #define EPS 3.0e-14
 #define MAXIT 30
 #define ZERO 1.0E-10
-
+#define CHUNKSIZE 1000000
 
 #include <iomanip>
 #include <stdio.h>
@@ -44,8 +45,11 @@ int main(int argc, char** argv){
      srand(time(NULL));  // This produces the so-called seed in MC jargon
 //   evaluate the integral with the a crude Monte-Carlo method
 
-
-    #pragma omp parallell for
+    int teller =0;
+    int chunk = CHUNKSIZE;
+    #pragma omp parallel shared(chunk)
+    {
+    #pragma omp for schedule(dynamic,chunk)
      for ( int i = 0;  i <= n; i++){
   // obtain a floating number x in [0,1]
            double x1 = double(rand())*invers_period;
@@ -65,9 +69,13 @@ int main(int argc, char** argv){
            mc_int[i]=funk;
            //cout<<funk<<endl;
            MCintsqr2+=funk*funk;
-
+           teller +=1;
 
      }
+     cout<<"teller "<<teller<<" "<<4000000<<endl;
+   }
+
+   
      double e_value = MCint/((double)n);
      for(int i = 0;i<n;i++){
        var+=pow(mc_int[i]-e_value,2);
