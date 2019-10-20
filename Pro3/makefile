@@ -8,8 +8,9 @@ CFLAGS=-I.
 
 
 
-all:pro3_ce par_test
-pro3_ce: pro3_ce.cpp
-	${CC} -o pro3_ce.exe pro3_ce.cpp
-par_test: par_test.cpp
-	${CC} -o par_test.exe par_test.cpp
+all:pro3_c2 pro3_d
+
+pro3_c2: pro3_c2.cpp
+	${CC} -o pro3_c2.exe pro3_c2.cpp
+pro3_d: pro3_d.cpp
+	${CC} -o pro3_d.exe pro3_d.cpp
