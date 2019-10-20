@@ -31,8 +31,8 @@ int main(int argc, char** argv){
 
      int n=atoi(argv[1]);
 
-
-     double MCint, MCintsqr2, Variance;
+     double *mc_int = new double [n];
+     double MCint, MCintsqr2, Variance,funk;
      double sum= 0;
      double a,b;
      a= -2.5;b=2.5;
@@ -54,21 +54,32 @@ int main(int argc, char** argv){
            theta2=0 +(M_PI-0)*theta2;
            phi1=0 +(2*M_PI-0)*phi1;
            phi2=0 +(2*M_PI-0)*phi2;
-           sum+=int_GauseLA_function(r1,r2,theta1, theta2, phi1, phi2);
+           funk=int_GauseLA_function(r1,r2,theta1, theta2, phi1, phi2);
+           sum+=funk;
+           mc_int[i]=funk;
+           //cout<<funk<<endl;
+           MCintsqr2+=funk*funk;
 
 
      }
      double jac=(4*pow(M_PI,4))/16;
+     double e_value = sum/((double)n);
      //MCint = sum*(b-a)*(b-a)*(b-a)*(b-a)*(b-a)*(b-a);
-     MCint=jac*sum;
+     for(int i = 0;i<n;i++){
+      Variance+=pow(mc_int[i]-e_value,2);
+
+     }
+     Variance=(Variance*jac)/((double)n);
 
 
-     MCint = MCint/((double) n );
-     MCintsqr2 = MCintsqr2/((double) n );
-     double variance=(MCintsqr2-sum*sum)*jac;
+     MCint=(sum*jac)/((double)n); //integral summen multiplisert med jakobi verdien
+
+
+
+
      double ana=(5*(M_PI*M_PI))/(16*16);
 //   final output
-     cout << " variance= " << variance << " Integral = " << MCint << " Exact= " << ana << endl;
+     cout << " variance= " << Variance<< " Integral = " << MCint << " Exact= " << ana << endl;
 }  // end of main program
 // this function defines the function to integrate
 
