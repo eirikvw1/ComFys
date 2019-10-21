@@ -10,6 +10,9 @@ CFLAGS=-I.
 
 
 
-
+all:pro3_ce pro3_de
  pro3_ce: pro3_ce.cpp
 	${CC} -o  pro3_ce.exe  pro3_ce.cpp
+
+pro3_de: pro3_de.cpp
+	${CC} -o  pro3_de.exe  pro3_de.cpp
