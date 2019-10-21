@@ -1,9 +1,9 @@
 #include <armadillo>
 #include <iostream>
-#include <fstream>
 #include <iomanip>
-#include <stdio.h>
+#include <fstream>
 #include <stdlib.h>
+#include <stdio.h>
 #include <cmath>
 #include <tuple>
 #include "time.h"
@@ -11,90 +11,31 @@
 #define EPS 3.0e-14
 #define MAXIT 30
 #define ZERO 1.0E-10
-
-
-#include <iomanip>
-#include <stdio.h>
-
 using namespace arma;
 using namespace std;
+#ifndef func
+#define func
 
 void gauleg(double, double, double *, double *, int);
 void WriteVec(double*,double*, int);
 void Write_To_File(char *, double*, double*, int);
 double Kart_integral(double *W_le,double *x_le,int N);
-double int_function(double, double, double, double, double, double);
+//double int_function(double, double, double, double, double, double);
 void gauss_laguerre(double *, double *, int, double);
 double Polar_integral(double *r_la,double *Wr_la,double *W_t,double *theta_la,double *W_p,double *phi_la,int N);
 double int_GauseLA_function(double r1, double r2, double theta1,double theta2,double phi1,double phi2);
 double gammln(double);
 void Write_File(char *fil_navn,int,double, double);
-
-int main(int argc, char** argv){
-  if((argc <= 1)||(atoi(argv[1])<=0)){
-    cout << "Need number argument larger than 0"<< endl;
-    return 1;
-  }
-
-
-
-  int N=atoi(argv[1]);
-
-
-  //   reserve space in memory for vectors containing the mesh points
-//   weights and function values for the use of the gauss-legendre
-//   method
-
-  double *x_le = new double [N];
-  double *w_le = new double [N];
-
-  double *Wr_la = new double [N+1];
-  double *r_la = new double [N+1];
-  double *W_t_la = new double [N];
-  double *W_p_la = new double [N];
-  double *t_la = new double [N];
-  double *p_la = new double [N];
-
-
-  clock_t start, finnish;
-  double time_Polar = 0;
-  double time_kart = 0;
-
-  start = clock();
-  gauleg(-2,2,x_le,w_le,N);
-  double int_kart=Kart_integral(w_le,x_le, N);
-  finnish = clock();
-  time_kart += (finnish-start)/(CLOCKS_PER_SEC/1000000);
-
-  //   set up the mesh points and weights and the power of x^alf
-  double alf = 2.0;
+void Write_File(char *fil_navn, int,double, double, double, double);
+double polar_MC_function(double r1, double r2, double theta1,double theta2,double phi1,double phi2);
+double kart_function(double x1, double y1, double z1, double x2, double y2, double z2);
+void MC_kart_integral(double *, double *, double *, double *,int);
+void MC_Polar_integral(double *MC_int, double *var, int n);
 
 
 
+#endif
 
-  start = clock();
-  gauleg(0.0,M_PI,t_la,W_t_la,N);
-  gauleg(0.0,2*M_PI,p_la,W_p_la,N);
-  gauss_laguerre(r_la,Wr_la, N, alf);
-  double int_polar=Polar_integral(r_la,Wr_la,W_t_la,t_la,W_p_la,p_la,N);
-  finnish = clock();
-  time_Polar += (finnish-start)/(CLOCKS_PER_SEC/1000000);
-
-
-
-
-
-
-  double ana=(5*(M_PI*M_PI))/(16*16);
-  cout<<"Analytisk: "<<ana<<endl;
-  char *int_file="int_data_2";
-  Write_File(int_file, N ,int_kart,int_polar);
-  char *time_file="time_data_2";
-  Write_File(time_file, N ,time_kart,time_Polar);
-
-  return 0;
-  }
-  // end of main function
 
 
 
@@ -295,8 +236,131 @@ double Polar_integral(double *r_la,double *Wr_la,double *W_t,double *theta_la,do
 
 void Write_File(char *fil_navn, int N,double gauss, double polar){
   ofstream myfile(fil_navn, ios_base::app);
-  myfile.precision(14);
+  myfile.precision(8);
   myfile<<N<<" "<< gauss<<" "<<polar<<endl;
   myfile.close();
 
 }
+void Write_File(char *fil_navn, int N,double kart, double polar, double var_kart, double var_polar){
+  ofstream myfile(fil_navn, ios_base::app);
+  myfile.precision(8);
+  myfile<<N<<" "<< kart<<" "<<polar<< " "<<var_kart <<" "<<var_polar <<endl;
+  myfile.close();
+
+}
+
+double kart_function(double x1, double y1, double z1, double x2, double y2, double z2){
+   double alpha = 2.;
+// evaluate the different terms of the exponential
+   double exp1=-2*alpha*sqrt(x1*x1+y1*y1+z1*z1);
+   double exp2=-2*alpha*sqrt(x2*x2+y2*y2+z2*z2);
+   double deno=sqrt(pow((x1-x2),2)+pow((y1-y2),2)+pow((z1-z2),2));
+   double f=exp(exp1+exp2)/deno;
+   if(deno>ZERO){
+     return f;
+   }
+   else{
+     return 0;
+   }
+} // end of function to evaluate
+
+
+double polar_MC_function(double r1, double r2, double theta1,double theta2,double phi1,double phi2){
+
+  double cosbeta = cos(theta1)*cos(theta2) + sin(theta1)*sin(theta2)*cos(phi1-phi2);
+  double r12=r1*r1+r2*r2-2*r1*r2*cosbeta;
+        double f = pow(r1,2)*pow(r2,2)*sin(theta1)*sin(theta2)/sqrt(r12);
+        if(r12 > ZERO)
+                return f;
+        else
+                return 0;
+
+
+}// end of function to evaluate
+
+void MC_kart_integral(double *MCint, double *var, double *a, double *b, int n){
+    double invers_period = 1./RAND_MAX; // initialise the random number generator
+    srand(time(NULL));
+    // This produces the so-called seed in MC jargon
+//   evaluate the integral with the a crude Monte-Carlo method
+      double e_value =0;double funk= 0;
+      double *mc_int = new double [n];
+      double sum_MC =0;
+      //start for loop
+      for ( int i = 0;  i <= n; i++){
+
+    // obtain a floating number x in [0,1]
+             double x1 = double(rand())*invers_period;
+             double y1 = double(rand())*invers_period;
+             double z1 = double(rand())*invers_period;
+             double x2 = double(rand())*invers_period;
+             double y2 = double(rand())*invers_period;
+             double z2 = double(rand())*invers_period;
+             x1=*a +(*b-*a)*x1;
+             y1=*a +(*b-*a)*y1;
+             z1=*a +(*b-*a)*z1;
+             x2=*a +(*b-*a)*x2;
+             y2=*a +(*b-*a)*y2;
+              z2=*a +(*b-*a)*z2;
+             funk=kart_function(x1,y1,z1,x2,y2,z2);
+             sum_MC +=funk;
+             mc_int[i]=funk;
+       }// end of For loop
+
+       e_value = (*MCint)/((double)n);
+       double sum_var=0;
+       //start for loop
+       for(int i = 0;i<n;i++){
+         sum_var+=pow(mc_int[i]-e_value,2);
+
+       }// end of for loop
+       *MCint=sum_MC;
+       *var=sum_var;
+       delete mc_int;
+
+}//end of fuktion
+
+
+void MC_Polar_integral(double *MC_int, double *var,int n){
+  double invers_period = 1./RAND_MAX; // initialise the random number generator
+  srand(time(NULL));
+  // This produces the so-called seed in MC jargon
+//   evaluate the integral with the a crude Monte-Carlo method
+    double e_value =0;double funk= 0;
+    double *mc_int = new double [n];
+    double sum_MC =0;
+    for ( int i = 1;  i <= n; i++){
+ // obtain a floating number x in [0,1]
+          double r1 = double(rand())*invers_period;
+          double r2 = double(rand())*invers_period;
+          double theta1 = double(rand())*invers_period;
+          double theta2 = double(rand())*invers_period;
+          double phi1 = double(rand())*invers_period;
+          double phi2 = double(rand())*invers_period;
+          r1=-log(1-r1)/4;
+          r2=-log(1-r2)/4;
+          theta1=0 +(M_PI-0)*theta1;
+          theta2=0 +(M_PI-0)*theta2;
+          phi1=0 +(2*M_PI-0)*phi1;
+          phi2=0 +(2*M_PI-0)*phi2;
+          funk=polar_MC_function(r1,r2,theta1, theta2, phi1, phi2);
+          sum_MC+=funk;
+          mc_int[i]=funk;
+          //cout<<funk<<endl;
+
+
+
+    }// end of loop
+
+
+  e_value = (sum_MC)/((double)n);
+  double sum_var=0;
+  //start for loop
+  for(int i = 0;i<n;i++){
+    sum_var+=pow(mc_int[i]-e_value,2);
+
+  }// end of for loop
+  *MC_int=sum_MC;
+  *var=sum_var;
+  delete mc_int;
+}// end of function MC_Polar_integral

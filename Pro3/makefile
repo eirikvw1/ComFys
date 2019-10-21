@@ -3,14 +3,15 @@
 # Here we define compiler option, libraries and the  target
 CC= g++ -std=c++11 -Wall -Wextra -Wpedantic -larmadillo -lblas -llapack -fopenmp
 CFLAGS=-I.
+DEPS = func.h
 
 
 
 
+all:pro3_ab pro3_cd
 
-all:pro3_c2 pro3_d
+pro3_ab: pro3_ab.cpp
+	${CC} -o pro3_ab.exe pro3_ab.cpp
 
-pro3_c2: pro3_c2.cpp
-	${CC} -o pro3_c2.exe pro3_c2.cpp
-pro3_d: pro3_d.cpp
-	${CC} -o pro3_d.exe pro3_d.cpp
+pro3_cd: pro3_cd.cpp
+	${CC} -o pro3_cd.exe pro3_cd.cpp
