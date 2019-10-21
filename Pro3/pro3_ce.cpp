@@ -1,4 +1,5 @@
 #include <omp.h>
+#include <cstdio>
 #include <armadillo>
 #include <iostream>
 #include <fstream>
@@ -24,6 +25,9 @@ using namespace std;
 double int_function(double x1, double y1, double z1, double x2, double y2, double z2);
 
 //     Main function begins here
+double int_function(double x1, double y1, double z1, double x2, double y2, double z2);
+
+//     Main function begins here
 int main(int argc, char** argv){
   if((argc <= 1)||(atoi(argv[1])<=0)){
     cout << "Need number argument larger than 0"<< endl;
@@ -31,8 +35,8 @@ int main(int argc, char** argv){
   }
 
      int n=atoi(argv[1]);
-
-      double *mc_int = new double [n];
+     
+     double *mc_int = new double [n];
      double var = 0;
      double MCint, MCintsqr2, Variance;
      MCint=0;
@@ -45,11 +49,8 @@ int main(int argc, char** argv){
      srand(time(NULL));  // This produces the so-called seed in MC jargon
 //   evaluate the integral with the a crude Monte-Carlo method
 
-    int teller =0;
-    int chunk = CHUNKSIZE;
-    #pragma omp parallel shared(chunk)
-    {
-    #pragma omp for schedule(dynamic,chunk)
+
+    #pragma omp parallell for
      for ( int i = 0;  i <= n; i++){
   // obtain a floating number x in [0,1]
            double x1 = double(rand())*invers_period;
@@ -69,13 +70,9 @@ int main(int argc, char** argv){
            mc_int[i]=funk;
            //cout<<funk<<endl;
            MCintsqr2+=funk*funk;
-           teller +=1;
+
 
      }
-     cout<<"teller "<<teller<<" "<<4000000<<endl;
-   }
-
-   
      double e_value = MCint/((double)n);
      for(int i = 0;i<n;i++){
        var+=pow(mc_int[i]-e_value,2);
@@ -91,6 +88,7 @@ int main(int argc, char** argv){
      double ana=(5*(M_PI*M_PI))/(16*16);
 //   final output
      cout << " variance= " << var << " Integral = " << MCint << " Exact= " << ana << endl;
+     return 0;
 }  // end of main program
 // this function defines the function to integrate
 
@@ -107,4 +105,4 @@ double int_function(double x1, double y1, double z1, double x2, double y2, doubl
    else{
      return 0;
    }
-} // end of function to evaluate
+} //
