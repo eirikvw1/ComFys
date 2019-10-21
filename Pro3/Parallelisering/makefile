@@ -3,6 +3,7 @@
 # Here we define compiler option, libraries and the  target
 CC= mpiCC -std=c++11 -Wall -Wextra -Wpedantic -larmadillo -lblas -llapack
 CFLAGS=-I.
+DEPS = func.h
 
 
 
