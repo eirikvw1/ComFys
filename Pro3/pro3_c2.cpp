@@ -83,6 +83,7 @@ int main(int argc, char** argv){
      double ana=(5*(M_PI*M_PI))/(16*16);
 //   final output
      cout << " variance= " << var << " Integral = " << MCint << " Exact= " << ana << endl;
+     return 0;
 }  // end of main program
 // this function defines the function to integrate
 
