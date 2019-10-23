@@ -7,3 +7,6 @@ I parallel mappe ligger oppgace e. Der har jeg parallelisert ved hjelp av MPI.
 antall data pungter skriver man inn i selve filen
 -make
 -mpirun -np 4 filnavn.exe
+
+
+C++ programmene som har blit utviklet i dette prosjekte har tatt utgangspungt i programmene fra Git site computational physics course http://compphysics.github.io/ComputationalPhysics/doc/web/course
